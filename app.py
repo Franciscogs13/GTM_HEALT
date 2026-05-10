@@ -32,7 +32,7 @@ except Exception as e:
     st.stop()
 
 scopes = ['https://www.googleapis.com/auth/tagmanager.readonly']
-redirect_uri = "http://localhost:8501"
+redirect_uri = "https://gtm-health-check.streamlit.app"
 
 def get_flow():
     return Flow.from_client_config(
