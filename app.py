@@ -96,10 +96,10 @@ if 'credentials' not in st.session_state:
             # Salva no cache global usando o state como chave
             get_oauth_cache()[state] = flow.code_verifier
             
-    # Usamos HTML com target="_self" para evitar abrir uma nova aba
+    # Usamos HTML com target="_top" para redirecionar a aba inteira, escapando do iframe do Streamlit Cloud
     st.sidebar.markdown(
         f"""
-        <a href="{st.session_state['auth_url']}" target="_self" style="
+        <a href="{st.session_state['auth_url']}" target="_top" style="
             display: inline-block;
             padding: 0.5rem 1rem;
             background-color: #ffffff;
