@@ -1,0 +1,26 @@
+# Ambientes Virtuais
+venv/
+.venv/
+env/
+.env/
+
+# Python Cache e Sistema
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.DS_Store
+
+# Credenciais e Segredos (CRÍTICO)
+client_secrets.json
+token.json
+credentials.json
+.streamlit/secrets.toml
+
+# Arquivos de Teste / Temporários
+scratch.py
+*.log
+
+# Exportações de Dados
+*.csv
+*.xlsx
