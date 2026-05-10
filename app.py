@@ -248,7 +248,8 @@ else:
                             st.markdown("### Dados da Versão")
                             
                             st.markdown("#### Resumo da Versão")
-                            agora = datetime.datetime.now()
+                            fuso_br = datetime.timezone(datetime.timedelta(hours=-3))
+                            agora = datetime.datetime.now(fuso_br)
                             data_coleta = agora.strftime("%d/%m/%Y")
                             hora_coleta = agora.strftime("%H:%M")
                             
