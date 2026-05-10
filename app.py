@@ -102,7 +102,7 @@ if 'credentials' not in st.session_state:
 # Se o usuário ESTÁ logado
 else:
     st.sidebar.success("✅ Conectado com sucesso!")
-    if st.sidebar.button("Sair (Logout)"):
+    if st.sidebar.button("🚪 Sair (Logout)"):
         del st.session_state['credentials']
         if 'accounts' in st.session_state:
             del st.session_state['accounts']
@@ -251,7 +251,7 @@ else:
                             fuso_br = datetime.timezone(datetime.timedelta(hours=-3))
                             agora = datetime.datetime.now(fuso_br)
                             data_coleta = agora.strftime("%d/%m/%Y")
-                            hora_coleta = agora.strftime("%H:%M")
+                            hora_coleta = agora.strftime("%H:%M:%S")
                             
                             inventory_summary = [{
                                 'Data da Coleta': data_coleta,
