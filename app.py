@@ -96,23 +96,7 @@ if 'credentials' not in st.session_state:
             # Salva no cache global usando o state como chave
             get_oauth_cache()[state] = flow.code_verifier
             
-    # Usa HTML com target="_top" para escapar do iframe do Streamlit Cloud
-    auth_url = st.session_state['auth_url']
-    button_html = f"""
-    <a href="{auth_url}" target="_top" style="
-        text-decoration: none;
-        color: white;
-        background-color: #4285F4;
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        display: block;
-        text-align: center;
-        font-weight: 600;
-        margin-top: 1rem;
-        border: 1px solid #357ae8;
-    ">🔐 Autenticar com Google</a>
-    """
-    st.sidebar.markdown(button_html, unsafe_allow_html=True)
+    st.sidebar.link_button("🔐 Autenticar com Google", st.session_state['auth_url'])
 
 # Se o usuário ESTÁ logado
 else:
