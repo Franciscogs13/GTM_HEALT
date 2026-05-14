@@ -8,6 +8,7 @@ Um dashboard interativo desenvolvido em Python com Streamlit para realizar audit
 - **Inventário Completo:** Extração detalhada de Tags, Triggers e Variáveis da última versão publicada (Live).
 - **Análise de Qualidade:** Identificação automática de "Tags Órfãs" (tags sem acionadores vinculados).
 - **Visualização de Dados:** Gráficos interativos de composição do contêiner e histórico de crescimento. Inclui um controle deslizante (Slider) para escolher quantas versões passadas analisar (de 3 a 50).
+- **Interface Adaptativa:** Design com identidade visual corporativa (Laranja e Azul-petróleo) que suporta perfeitamente a alternância entre os Modos Claro e Escuro, garantindo alto contraste e acessibilidade.
 - **Exportação Profissional:** Download do inventário tratado em formatos CSV ou Excel (.xlsx) para relatórios rápidos.
 
 ## 📋 Pré-requisitos e Autenticação (OAuth 2.0)

@@ -27,6 +27,7 @@ A aplicação foi construída integralmente em **Python**, prezando por alta vel
 
 ### 🖥️ Interface e Front-End
 * **[Streamlit](https://streamlit.io/):** Framework de código aberto principal da aplicação. Responsável por traduzir a lógica de Python diretamente para uma aplicação Web moderna, ágil e visual. Ele gerencia o estado da sessão de navegação, a responsividade de tela, as barras de rolagem, alertas de notificação e o layout geral do projeto sem necessitar criar arquivos complexos de HTML/CSS/JS.
+* **Gestão de Temas Customizada:** A aplicação conta com uma injeção fluida de CSS que implementa a paleta de cores corporativa. A arquitetura visual utiliza as variáveis dinâmicas do Streamlit, preservando 100% da funcionalidade nativa do botão "Light/Dark Mode" no menu de configurações do usuário. Isso garante acessibilidade, legibilidade de dados e integração responsiva dos gráficos Plotly em qualquer cenário de iluminação.
 
 ### 🔌 Integração e Autenticação (Google APIs)
 * **[google-api-python-client](https://github.com/googleapis/google-api-python-client):** Biblioteca oficial do Google Cloud. Utilizada em nosso módulo de backend (`gtm_api.py`) para consumir a API v2 do GTM. É ela quem faz o trabalho duro de buscar as informações JSON da nuvem de acordo com as requisições do usuário.
