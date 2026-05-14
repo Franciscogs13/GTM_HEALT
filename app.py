@@ -13,6 +13,100 @@ st.set_page_config(
     layout="wide"
 )
 
+def apply_custom_theme():
+    custom_css = """
+    <style>
+        /* Variáveis de Cores Corporativas */
+        :root {
+            --cor-laranja: #E87722;
+            --cor-azul: #0B3D5E;
+            --cor-preto: #1A1A1A;
+            --cor-cinza: #F5F6FA;
+            --cor-branco: #FFFFFF;
+        }
+
+        /* Estilos baseados no tema do sistema (Light) */
+        @media (prefers-color-scheme: light) {
+            [data-testid="stAppViewContainer"] {
+                background-color: var(--cor-cinza) !important;
+            }
+            [data-testid="stSidebar"] {
+                background-color: var(--cor-branco) !important;
+            }
+            /* Headers */
+            h1, h2, h3 {
+                color: var(--cor-azul) !important;
+            }
+            /* Metric Cards */
+            [data-testid="stMetric"] {
+                background-color: var(--cor-branco) !important;
+                padding: 15px !important;
+                border-radius: 8px !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+                border-left: 5px solid var(--cor-laranja) !important;
+            }
+            [data-testid="stExpander"] {
+                background-color: var(--cor-branco) !important;
+            }
+        }
+
+        /* Estilos baseados no tema do sistema (Dark) */
+        @media (prefers-color-scheme: dark) {
+            [data-testid="stAppViewContainer"] {
+                background-color: var(--cor-preto) !important;
+            }
+            [data-testid="stSidebar"] {
+                background-color: #222222 !important;
+            }
+            /* Headers */
+            h1, h2, h3 {
+                color: var(--cor-laranja) !important;
+            }
+            /* Metric Cards */
+            [data-testid="stMetric"] {
+                background-color: #222222 !important;
+                padding: 15px !important;
+                border-radius: 8px !important;
+                box-shadow: 0 2px 4px rgba(255,255,255,0.05) !important;
+                border-left: 5px solid var(--cor-azul) !important;
+            }
+            [data-testid="stExpander"] {
+                background-color: #222222 !important;
+            }
+        }
+
+        /* Botões Globais (Comuns para ambos) */
+        .stButton > button {
+            background-color: var(--cor-laranja) !important;
+            color: var(--cor-branco) !important;
+            border: none !important;
+            font-weight: bold !important;
+            border-radius: 6px !important;
+        }
+        .stButton > button:hover {
+            background-color: var(--cor-azul) !important;
+            color: var(--cor-branco) !important;
+        }
+        
+        /* Botão de Link (Autenticar com Google) */
+        .stLinkButton > a {
+            background-color: var(--cor-laranja) !important;
+            color: var(--cor-branco) !important;
+            border: none !important;
+            font-weight: bold !important;
+            text-decoration: none !important;
+            border-radius: 6px !important;
+        }
+        .stLinkButton > a:hover {
+            background-color: var(--cor-azul) !important;
+            color: var(--cor-branco) !important;
+        }
+    </style>
+    """
+    st.markdown(custom_css, unsafe_allow_html=True)
+
+apply_custom_theme()
+
 # --- Funções Auxiliares ---
 def to_excel(df_summary, df_inventory):
     output = BytesIO()
@@ -246,7 +340,8 @@ else:
                                     'Elemento': ['Tags', 'Triggers', 'Variáveis'],
                                     'Quantidade': [num_tags, num_triggers, num_variables]
                                 })
-                                fig_pie = px.pie(pie_data, values='Quantidade', names='Elemento', hole=0.4)
+                                fig_pie = px.pie(pie_data, values='Quantidade', names='Elemento', hole=0.4,
+                                                 color_discrete_sequence=['#E87722', '#0B3D5E', '#A0A0A0'])
                                 st.plotly_chart(fig_pie, use_container_width=True)
                                 
                             with col_chart2:
@@ -280,7 +375,8 @@ else:
                                     if not df_hist.empty:
                                         df_hist = df_hist.iloc[::-1]
                                         
-                                        fig_bar = px.bar(df_hist, x='Versão', y='Tamanho (KB)', text='Tamanho (KB)')
+                                        fig_bar = px.bar(df_hist, x='Versão', y='Tamanho (KB)', text='Tamanho (KB)',
+                                                         color_discrete_sequence=['#0B3D5E'])
                                         fig_bar.update_traces(texttemplate='%{text:.1f}', textposition='outside')
                                         st.plotly_chart(fig_bar, use_container_width=True)
                                     else:
