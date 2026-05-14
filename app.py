@@ -176,7 +176,8 @@ else:
                             complexity_ms = gtm.calculate_complexity(num_tags, num_variables)
                             
                             # Identificar tags sem acionador (órfãs)
-                            orphan_tags = sum(1 for tag in tags if not tag.get('firingTriggerId'))
+                            orphan_tags_list = [{'Nome da Tag': tag.get('name', 'N/A'), 'Tipo': tag.get('type', 'N/A')} for tag in tags if not tag.get('firingTriggerId') or len(tag.get('firingTriggerId')) == 0]
+                            orphan_tags = len(orphan_tags_list)
                             
                             # --- Renderização do Dashboard Principal ---
                             st.title(f"Dashboard de Saúde: {selected_container_name}")
@@ -200,10 +201,23 @@ else:
                                 
                             if orphan_tags > 0:
                                 st.warning(f"🟡 **Aviso de Tags Órfãs:** Encontradas {orphan_tags} tags sem acionadores vinculados.")
+                                with st.expander("Ver Tags Órfãs"):
+                                    st.dataframe(pd.DataFrame(orphan_tags_list), use_container_width=True, hide_index=True)
                             else:
                                 st.success("🟢 Nenhuma tag órfã encontrada.")
 
                             st.markdown("---")
+                            
+                            # Histórico de Versões buscado para o Gráfico e o Comparativo
+                            if 'versions_history_cache' not in st.session_state:
+                                st.session_state.versions_history_cache = {}
+                                
+                            cache_key = container_path
+                            if cache_key in st.session_state.versions_history_cache:
+                                versions_history = st.session_state.versions_history_cache[cache_key]
+                            else:
+                                versions_history = gtm.get_versions(container_path)
+                                st.session_state.versions_history_cache[cache_key] = versions_history
                             
                             # --- Gráficos ---
                             col_chart1, col_chart2 = st.columns(2)
@@ -219,30 +233,125 @@ else:
                                 
                             with col_chart2:
                                 st.markdown(f"#### Histórico de Performance (Últimas {num_versions_history} Versões)")
-                                versions_history = gtm.get_versions(container_path)
+                                if 'versions_size_cache' not in st.session_state:
+                                    st.session_state.versions_size_cache = {}
+                                
                                 if versions_history:
-                                    last_versions = sorted(versions_history, key=lambda x: int(x.get('containerVersionId', 0)), reverse=True)[:num_versions_history]
+                                    sorted_all_versions = sorted(versions_history, key=lambda x: int(x.get('containerVersionId', 0)), reverse=True)
+                                    last_versions = sorted_all_versions[:num_versions_history]
                                     
                                     hist_data = []
                                     for v in last_versions:
                                         v_id = v.get('containerVersionId', 'N/A')
-                                        try:
-                                            v_path = v.get('path')
-                                            full_v = gtm.service.accounts().containers().versions().get(path=v_path).execute()
-                                            v_size = gtm.calculate_script_size(full_v)
-                                        except Exception:
-                                            v_size = 0
-                                            
-                                        hist_data.append({'Versão': f"v{v_id}", 'Tamanho (KB)': v_size})
+                                        
+                                        if v_id in st.session_state.versions_size_cache:
+                                            v_size = st.session_state.versions_size_cache[v_id]
+                                        else:
+                                            try:
+                                                v_path = v.get('path')
+                                                full_v = gtm.service.accounts().containers().versions().get(path=v_path).execute()
+                                                v_size = gtm.calculate_script_size(full_v)
+                                                st.session_state.versions_size_cache[v_id] = v_size
+                                            except Exception:
+                                                v_size = None
+                                                
+                                        if v_size is not None:
+                                            hist_data.append({'Versão': f"v{v_id}", 'Tamanho (KB)': v_size})
                                         
                                     df_hist = pd.DataFrame(hist_data)
-                                    df_hist = df_hist.iloc[::-1]
-                                    
-                                    fig_bar = px.bar(df_hist, x='Versão', y='Tamanho (KB)', text='Tamanho (KB)')
-                                    fig_bar.update_traces(texttemplate='%{text:.1f}', textposition='outside')
-                                    st.plotly_chart(fig_bar, use_container_width=True)
+                                    if not df_hist.empty:
+                                        df_hist = df_hist.iloc[::-1]
+                                        
+                                        fig_bar = px.bar(df_hist, x='Versão', y='Tamanho (KB)', text='Tamanho (KB)')
+                                        fig_bar.update_traces(texttemplate='%{text:.1f}', textposition='outside')
+                                        st.plotly_chart(fig_bar, use_container_width=True)
+                                    else:
+                                        st.info("Não foi possível carregar os dados de tamanho para estas versões.")
                                 else:
                                     st.info("Não há histórico de versões suficiente para exibir.")
+
+                            st.markdown("---")
+
+                            # --- Comparativo de Versões (Live vs Live-1) ---
+                            st.markdown("### Mudanças Recentes (Live vs Live-1)")
+                            
+                            sorted_versions = sorted(versions_history, key=lambda x: int(x.get('containerVersionId', 0)), reverse=True) if versions_history else []
+                            live_v_id_int = int(version_id) if str(version_id).isdigit() else 0
+                            prev_v_header = next((v for v in sorted_versions if int(v.get('containerVersionId', 0)) < live_v_id_int), None)
+                            
+                            if prev_v_header:
+                                prev_v_id = prev_v_header.get('containerVersionId')
+                                with st.spinner(f"Buscando versão anterior (v{prev_v_id}) para comparativo..."):
+                                    try:
+                                        # Verifica cache para a versão anterior completa
+                                        if 'full_version_cache' not in st.session_state:
+                                            st.session_state.full_version_cache = {}
+                                            
+                                        if prev_v_id in st.session_state.full_version_cache:
+                                            prev_full_v = st.session_state.full_version_cache[prev_v_id]
+                                        else:
+                                            prev_v_path = prev_v_header.get('path')
+                                            prev_full_v = gtm.service.accounts().containers().versions().get(path=prev_v_path).execute()
+                                            st.session_state.full_version_cache[prev_v_id] = prev_full_v
+                                        
+                                        def compare_elements(live_elements, prev_elements, id_key):
+                                            live_dict = {e.get(id_key): e for e in live_elements}
+                                            prev_dict = {e.get(id_key): e for e in prev_elements}
+                                            
+                                            added = []
+                                            removed = []
+                                            changed = []
+                                            
+                                            for eid, e in live_dict.items():
+                                                if eid not in prev_dict:
+                                                    added.append({'Elemento': e.get('name', eid)})
+                                                else:
+                                                    # Ignora chaves internas que mudam entre versões mas não representam alteração funcional
+                                                    ignore_keys = ['fingerprint', 'path', 'workspaceId', 'containerVersionId']
+                                                    e_clean = {k: v for k, v in e.items() if k not in ignore_keys}
+                                                    prev_e_clean = {k: v for k, v in prev_dict[eid].items() if k not in ignore_keys}
+                                                    if e_clean != prev_e_clean:
+                                                        changed.append({'Elemento': e.get('name', eid)})
+                                                        
+                                            for eid, e in prev_dict.items():
+                                                if eid not in live_dict:
+                                                    removed.append({'Elemento': e.get('name', eid)})
+                                                    
+                                            return added, removed, changed
+
+                                        added_tags, rem_tags, mod_tags = compare_elements(tags, prev_full_v.get('tag', []), 'tagId')
+                                        added_trig, rem_trig, mod_trig = compare_elements(triggers, prev_full_v.get('trigger', []), 'triggerId')
+                                        added_var, rem_var, mod_var = compare_elements(variables, prev_full_v.get('variable', []), 'variableId')
+                                        
+                                        tab1, tab2, tab3 = st.tabs(["Tags", "Acionadores", "Variáveis"])
+                                        
+                                        def render_diff_table(added, removed, changed):
+                                            if not added and not removed and not changed:
+                                                st.info("Nenhuma mudança detectada.")
+                                                return
+                                            
+                                            col_a, col_r, col_c = st.columns(3)
+                                            with col_a:
+                                                st.markdown("🟢 **Adicionados**")
+                                                st.dataframe(pd.DataFrame(added) if added else pd.DataFrame([{'Elemento': '-'}]), use_container_width=True, hide_index=True)
+                                            with col_r:
+                                                st.markdown("🔴 **Removidos**")
+                                                st.dataframe(pd.DataFrame(removed) if removed else pd.DataFrame([{'Elemento': '-'}]), use_container_width=True, hide_index=True)
+                                            with col_c:
+                                                st.markdown("🟡 **Alterados**")
+                                                st.dataframe(pd.DataFrame(changed) if changed else pd.DataFrame([{'Elemento': '-'}]), use_container_width=True, hide_index=True)
+
+                                        with tab1:
+                                            render_diff_table(added_tags, rem_tags, mod_tags)
+                                        with tab2:
+                                            render_diff_table(added_trig, rem_trig, mod_trig)
+                                        with tab3:
+                                            render_diff_table(added_var, rem_var, mod_var)
+                                            
+                                    except Exception as e:
+                                        st.error(f"Não foi possível carregar o comparativo de versões: {e}")
+                            else:
+                                st.info("Não há versão publicada anterior para comparar.")
 
                             # --- Tabelas de Dados ---
                             st.markdown("### Dados da Versão")
