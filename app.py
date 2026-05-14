@@ -132,8 +132,15 @@ else:
             account_id = account_options[selected_account_name]
             account_path = f"accounts/{account_id}"
             
-            # Busca Contêineres
-            containers = gtm.get_containers(account_path)
+            # Busca Contêineres com Cache
+            if 'containers_cache' not in st.session_state:
+                st.session_state.containers_cache = {}
+                
+            if account_path in st.session_state.containers_cache:
+                containers = st.session_state.containers_cache[account_path]
+            else:
+                containers = gtm.get_containers(account_path)
+                st.session_state.containers_cache[account_path] = containers
             container_options = {cont['name']: cont['containerId'] for cont in containers}
             
             selected_container_name = st.sidebar.selectbox("Selecione o Contêiner", options=list(container_options.keys()))
