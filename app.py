@@ -311,45 +311,66 @@ else:
                                                     prev_e_clean = {k: v for k, v in prev_dict[eid].items() if k not in ignore_keys}
                                                     
                                                     if e_clean != prev_e_clean:
-                                                        mudancas = []
+                                                        element_name = e.get('name', eid)
                                                         
                                                         all_keys = set(e_clean.keys()).union(prev_e_clean.keys())
                                                         for k in all_keys:
                                                             val_atual = e_clean.get(k)
                                                             val_anterior = prev_e_clean.get(k)
                                                             if val_atual != val_anterior:
-                                                                if k == 'name':
-                                                                    mudancas.append(f"Nome (De '{val_anterior}' para '{val_atual}')")
+                                                                if k == 'parameter':
+                                                                    # Comparação inteligente dos parâmetros (que são listas de dicionários)
+                                                                    params_atuais = {p.get('key'): p.get('value') for p in (val_atual or []) if 'key' in p}
+                                                                    params_anteriores = {p.get('key'): p.get('value') for p in (val_anterior or []) if 'key' in p}
+                                                                    all_p_keys = set(params_atuais.keys()).union(params_anteriores.keys())
+                                                                    for pk in all_p_keys:
+                                                                        p_atu = params_atuais.get(pk)
+                                                                        p_ant = params_anteriores.get(pk)
+                                                                        if p_atu != p_ant:
+                                                                            changed.append({
+                                                                                'Elemento': element_name,
+                                                                                'Campo Alterado': f"Parâmetro: {pk}",
+                                                                                'Valor Anterior (v. Anterior)': str(p_ant) if p_ant is not None else "(Não existia)",
+                                                                                'Valor Atual (v. Atual)': str(p_atu) if p_atu is not None else "(Removido)"
+                                                                            })
+                                                                elif k == 'firingTriggerId':
+                                                                    changed.append({
+                                                                        'Elemento': element_name,
+                                                                        'Campo Alterado': "Acionadores de disparo",
+                                                                        'Valor Anterior (v. Anterior)': ", ".join(val_anterior) if val_anterior else "Nenhum",
+                                                                        'Valor Atual (v. Atual)': ", ".join(val_atual) if val_atual else "Nenhum"
+                                                                    })
+                                                                elif k == 'blockingTriggerId':
+                                                                    changed.append({
+                                                                        'Elemento': element_name,
+                                                                        'Campo Alterado': "Acionadores de bloqueio (Exceções)",
+                                                                        'Valor Anterior (v. Anterior)': ", ".join(val_anterior) if val_anterior else "Nenhum",
+                                                                        'Valor Atual (v. Atual)': ", ".join(val_atual) if val_atual else "Nenhum"
+                                                                    })
                                                                 elif k == 'paused':
                                                                     status_ant = 'Pausado' if val_anterior else 'Ativo'
                                                                     status_atu = 'Pausado' if val_atual else 'Ativo'
-                                                                    mudancas.append(f"Status (De '{status_ant}' para '{status_atu}')")
-                                                                elif k == 'firingTriggerId':
-                                                                    mudancas.append("Acionadores de disparo modificados")
-                                                                elif k == 'blockingTriggerId':
-                                                                    mudancas.append("Acionadores de bloqueio modificados")
-                                                                elif k == 'parameter':
-                                                                    mudancas.append("Parâmetros modificados")
-                                                                elif k == 'type':
-                                                                    mudancas.append(f"Tipo (De '{val_anterior}' para '{val_atual}')")
-                                                                elif k == 'priority':
-                                                                    mudancas.append(f"Prioridade (De '{val_anterior}' para '{val_atual}')")
-                                                                elif k == 'consentSettings':
-                                                                    mudancas.append("Configurações de Consentimento modificadas")
-                                                                elif k == 'monitoringMetadata':
-                                                                    mudancas.append("Metadados de Monitoramento alterados")
-                                                                elif k in ['scheduleStartMs', 'scheduleEndMs']:
-                                                                    mudancas.append("Programação alterada")
+                                                                    changed.append({
+                                                                        'Elemento': element_name,
+                                                                        'Campo Alterado': "Status",
+                                                                        'Valor Anterior (v. Anterior)': status_ant,
+                                                                        'Valor Atual (v. Atual)': status_atu
+                                                                    })
+                                                                elif k == 'name':
+                                                                    changed.append({
+                                                                        'Elemento': val_anterior,
+                                                                        'Campo Alterado': "Nome",
+                                                                        'Valor Anterior (v. Anterior)': val_anterior,
+                                                                        'Valor Atual (v. Atual)': val_atual
+                                                                    })
                                                                 else:
                                                                     if k not in ['tagManagerUrl', 'accountId', 'containerId']:
-                                                                        mudancas.append(f"Campo '{k}' modificado")
-                                                            
-                                                        detalhe = " | ".join(mudancas) if mudancas else "Configurações gerais alteradas"
-                                                        
-                                                        changed.append({
-                                                            'Elemento': e.get('name', eid),
-                                                            'Detalhe da Alteração': detalhe
-                                                        })
+                                                                        changed.append({
+                                                                            'Elemento': element_name,
+                                                                            'Campo Alterado': f"Propriedade: {k}",
+                                                                            'Valor Anterior (v. Anterior)': str(val_anterior),
+                                                                            'Valor Atual (v. Atual)': str(val_atual)
+                                                                        })
                                                         
                                             for eid, e in prev_dict.items():
                                                 if eid not in live_dict:
