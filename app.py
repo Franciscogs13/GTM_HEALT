@@ -273,14 +273,13 @@ else:
                             st.markdown("---")
 
                             # --- Comparativo de Versões (Live vs Live-1) ---
-                            st.markdown("### Mudanças Recentes (Live vs Live-1)")
-                            
                             sorted_versions = sorted(versions_history, key=lambda x: int(x.get('containerVersionId', 0)), reverse=True) if versions_history else []
                             live_v_id_int = int(version_id) if str(version_id).isdigit() else 0
                             prev_v_header = next((v for v in sorted_versions if int(v.get('containerVersionId', 0)) < live_v_id_int), None)
                             
                             if prev_v_header:
                                 prev_v_id = prev_v_header.get('containerVersionId')
+                                st.markdown(f"### Mudanças Recentes (Versão Atual {version_id} vs Versão Anterior {prev_v_id})")
                                 with st.spinner(f"Buscando versão anterior (v{prev_v_id}) para comparativo..."):
                                     try:
                                         # Verifica cache para a versão anterior completa
@@ -304,18 +303,34 @@ else:
                                             
                                             for eid, e in live_dict.items():
                                                 if eid not in prev_dict:
-                                                    added.append({'Elemento': e.get('name', eid)})
+                                                    added.append({'Elemento': e.get('name', eid), 'Status': 'Pausado' if e.get('paused') else 'Ativo'})
                                                 else:
                                                     # Ignora chaves internas que mudam entre versões mas não representam alteração funcional
                                                     ignore_keys = ['fingerprint', 'path', 'workspaceId', 'containerVersionId']
                                                     e_clean = {k: v for k, v in e.items() if k not in ignore_keys}
                                                     prev_e_clean = {k: v for k, v in prev_dict[eid].items() if k not in ignore_keys}
+                                                    
                                                     if e_clean != prev_e_clean:
-                                                        changed.append({'Elemento': e.get('name', eid)})
+                                                        mudancas = []
+                                                        if e.get('name') != prev_dict[eid].get('name'):
+                                                            mudancas.append("Nome alterado")
+                                                        if bool(e.get('paused')) != bool(prev_dict[eid].get('paused')):
+                                                            mudancas.append("Pausado" if e.get('paused') else "Despausado")
+                                                        if e.get('firingTriggerId') != prev_dict[eid].get('firingTriggerId'):
+                                                            mudancas.append("Acionadores modificados")
+                                                        if e.get('parameter') != prev_dict[eid].get('parameter'):
+                                                            mudancas.append("Parâmetros alterados")
+                                                            
+                                                        detalhe = ", ".join(mudancas) if mudancas else "Configurações gerais alteradas"
+                                                        
+                                                        changed.append({
+                                                            'Elemento': e.get('name', eid),
+                                                            'Detalhe da Alteração': detalhe
+                                                        })
                                                         
                                             for eid, e in prev_dict.items():
                                                 if eid not in live_dict:
-                                                    removed.append({'Elemento': e.get('name', eid)})
+                                                    removed.append({'Elemento': e.get('name', eid), 'Nota': 'Excluído na versão atual'})
                                                     
                                             return added, removed, changed
 
@@ -327,19 +342,17 @@ else:
                                         
                                         def render_diff_table(added, removed, changed):
                                             if not added and not removed and not changed:
-                                                st.info("Nenhuma mudança detectada.")
+                                                st.info("Nenhuma mudança detectada entre estas versões.")
                                                 return
                                             
-                                            col_a, col_r, col_c = st.columns(3)
-                                            with col_a:
-                                                st.markdown("🟢 **Adicionados**")
-                                                st.dataframe(pd.DataFrame(added) if added else pd.DataFrame([{'Elemento': '-'}]), use_container_width=True, hide_index=True)
-                                            with col_r:
-                                                st.markdown("🔴 **Removidos**")
-                                                st.dataframe(pd.DataFrame(removed) if removed else pd.DataFrame([{'Elemento': '-'}]), use_container_width=True, hide_index=True)
-                                            with col_c:
-                                                st.markdown("🟡 **Alterados**")
-                                                st.dataframe(pd.DataFrame(changed) if changed else pd.DataFrame([{'Elemento': '-'}]), use_container_width=True, hide_index=True)
+                                            st.markdown("🟢 **Adicionados**")
+                                            st.dataframe(pd.DataFrame(added) if added else pd.DataFrame([{'Elemento': '-'}]), use_container_width=True, hide_index=True)
+                                            
+                                            st.markdown("🔴 **Removidos**")
+                                            st.dataframe(pd.DataFrame(removed) if removed else pd.DataFrame([{'Elemento': '-'}]), use_container_width=True, hide_index=True)
+                                            
+                                            st.markdown("🟡 **Alterados**")
+                                            st.dataframe(pd.DataFrame(changed) if changed else pd.DataFrame([{'Elemento': '-'}]), use_container_width=True, hide_index=True)
 
                                         with tab1:
                                             render_diff_table(added_tags, rem_tags, mod_tags)
