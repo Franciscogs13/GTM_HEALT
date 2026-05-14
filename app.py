@@ -303,7 +303,7 @@ else:
                                             
                                             for eid, e in live_dict.items():
                                                 if eid not in prev_dict:
-                                                    added.append({'Elemento': e.get('name', eid), 'Status': 'Pausado' if e.get('paused') else 'Ativo'})
+                                                    added.append({'Elemento': e.get('name', eid)})
                                                 else:
                                                     # Ignora chaves internas que mudam entre versões mas não representam alteração funcional
                                                     ignore_keys = ['fingerprint', 'path', 'workspaceId', 'containerVersionId']
@@ -312,16 +312,39 @@ else:
                                                     
                                                     if e_clean != prev_e_clean:
                                                         mudancas = []
-                                                        if e.get('name') != prev_dict[eid].get('name'):
-                                                            mudancas.append("Nome alterado")
-                                                        if bool(e.get('paused')) != bool(prev_dict[eid].get('paused')):
-                                                            mudancas.append("Pausado" if e.get('paused') else "Despausado")
-                                                        if e.get('firingTriggerId') != prev_dict[eid].get('firingTriggerId'):
-                                                            mudancas.append("Acionadores modificados")
-                                                        if e.get('parameter') != prev_dict[eid].get('parameter'):
-                                                            mudancas.append("Parâmetros alterados")
+                                                        
+                                                        all_keys = set(e_clean.keys()).union(prev_e_clean.keys())
+                                                        for k in all_keys:
+                                                            val_atual = e_clean.get(k)
+                                                            val_anterior = prev_e_clean.get(k)
+                                                            if val_atual != val_anterior:
+                                                                if k == 'name':
+                                                                    mudancas.append(f"Nome (De '{val_anterior}' para '{val_atual}')")
+                                                                elif k == 'paused':
+                                                                    status_ant = 'Pausado' if val_anterior else 'Ativo'
+                                                                    status_atu = 'Pausado' if val_atual else 'Ativo'
+                                                                    mudancas.append(f"Status (De '{status_ant}' para '{status_atu}')")
+                                                                elif k == 'firingTriggerId':
+                                                                    mudancas.append("Acionadores de disparo modificados")
+                                                                elif k == 'blockingTriggerId':
+                                                                    mudancas.append("Acionadores de bloqueio modificados")
+                                                                elif k == 'parameter':
+                                                                    mudancas.append("Parâmetros modificados")
+                                                                elif k == 'type':
+                                                                    mudancas.append(f"Tipo (De '{val_anterior}' para '{val_atual}')")
+                                                                elif k == 'priority':
+                                                                    mudancas.append(f"Prioridade (De '{val_anterior}' para '{val_atual}')")
+                                                                elif k == 'consentSettings':
+                                                                    mudancas.append("Configurações de Consentimento modificadas")
+                                                                elif k == 'monitoringMetadata':
+                                                                    mudancas.append("Metadados de Monitoramento alterados")
+                                                                elif k in ['scheduleStartMs', 'scheduleEndMs']:
+                                                                    mudancas.append("Programação alterada")
+                                                                else:
+                                                                    if k not in ['tagManagerUrl', 'accountId', 'containerId']:
+                                                                        mudancas.append(f"Campo '{k}' modificado")
                                                             
-                                                        detalhe = ", ".join(mudancas) if mudancas else "Configurações gerais alteradas"
+                                                        detalhe = " | ".join(mudancas) if mudancas else "Configurações gerais alteradas"
                                                         
                                                         changed.append({
                                                             'Elemento': e.get('name', eid),
@@ -330,7 +353,7 @@ else:
                                                         
                                             for eid, e in prev_dict.items():
                                                 if eid not in live_dict:
-                                                    removed.append({'Elemento': e.get('name', eid), 'Nota': 'Excluído na versão atual'})
+                                                    removed.append({'Elemento': e.get('name', eid)})
                                                     
                                             return added, removed, changed
 
