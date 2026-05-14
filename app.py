@@ -17,9 +17,10 @@ def apply_custom_theme():
     custom_css = """
     <style>
         /* Variáveis de Cores Corporativas para uso em componentes específicos */
-        :root {
+        :root, .stApp {
             --cor-laranja: #E87722;
             --cor-azul: #0B3D5E;
+            --primary-color: #E87722 !important;
         }
 
         /* 
