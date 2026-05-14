@@ -142,6 +142,25 @@ else:
                 container_id = container_options[selected_container_name]
                 container_path = f"{account_path}/containers/{container_id}"
                 
+                # Histórico de Versões buscado para Selectbox e Comparativo
+                if 'versions_history_cache' not in st.session_state:
+                    st.session_state.versions_history_cache = {}
+                    
+                cache_key = container_path
+                if cache_key in st.session_state.versions_history_cache:
+                    versions_history = st.session_state.versions_history_cache[cache_key]
+                else:
+                    versions_history = gtm.get_versions(container_path)
+                    st.session_state.versions_history_cache[cache_key] = versions_history
+                
+                selected_version_path = None
+                if versions_history:
+                    sorted_versions_desc = sorted(versions_history, key=lambda x: int(x.get('containerVersionId', 0)), reverse=True)
+                    version_options = {f"v{v.get('containerVersionId')} - {v.get('name', 'Sem nome')}": v.get('path') for v in sorted_versions_desc}
+                    selected_version_name = st.sidebar.selectbox("Versão para Auditoria", options=list(version_options.keys()))
+                    if selected_version_name:
+                        selected_version_path = version_options[selected_version_name]
+                        
                 num_versions_history = st.sidebar.slider(
                     "Histórico de Versões", 
                     min_value=3, 
@@ -155,10 +174,13 @@ else:
                     st.session_state.auditing_container = container_id
                     
                 if st.session_state.get('auditing_container') == container_id:
-                    with st.spinner("Buscando dados da última versão publicada..."):
+                    with st.spinner("Buscando dados da versão selecionada..."):
                         try:
-                            # Busca a versão Live
-                            live_version = gtm.get_latest_published_version(container_path)
+                            # Busca a versão selecionada pelo usuário
+                            if selected_version_path:
+                                live_version = gtm.service.accounts().containers().versions().get(path=selected_version_path).execute()
+                            else:
+                                live_version = gtm.get_latest_published_version(container_path)
                             
                             # Extração de dados da versão
                             version_name = live_version.get('name', 'N/A')
@@ -207,17 +229,6 @@ else:
                                 st.success("🟢 Nenhuma tag órfã encontrada.")
 
                             st.markdown("---")
-                            
-                            # Histórico de Versões buscado para o Gráfico e o Comparativo
-                            if 'versions_history_cache' not in st.session_state:
-                                st.session_state.versions_history_cache = {}
-                                
-                            cache_key = container_path
-                            if cache_key in st.session_state.versions_history_cache:
-                                versions_history = st.session_state.versions_history_cache[cache_key]
-                            else:
-                                versions_history = gtm.get_versions(container_path)
-                                st.session_state.versions_history_cache[cache_key] = versions_history
                             
                             # --- Gráficos ---
                             col_chart1, col_chart2 = st.columns(2)
@@ -279,7 +290,7 @@ else:
                             
                             if prev_v_header:
                                 prev_v_id = prev_v_header.get('containerVersionId')
-                                st.markdown(f"### Mudanças Recentes (Versão Atual {version_id} vs Versão Anterior {prev_v_id})")
+                                st.markdown(f"### Mudanças Recentes (Versão Escolhida {version_id} vs Versão Anterior {prev_v_id})")
                                 with st.spinner(f"Buscando versão anterior (v{prev_v_id}) para comparativo..."):
                                     try:
                                         # Verifica cache para a versão anterior completa
