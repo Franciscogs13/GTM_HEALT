@@ -27,65 +27,98 @@ def apply_custom_theme():
 
         /* Estilos baseados no tema do sistema (Light) */
         @media (prefers-color-scheme: light) {
-            [data-testid="stAppViewContainer"] {
+            .stApp {
                 background-color: var(--cor-cinza) !important;
             }
             [data-testid="stSidebar"] {
                 background-color: var(--cor-branco) !important;
+                border-right: 1px solid rgba(0,0,0,0.05) !important;
             }
             /* Headers */
             h1, h2, h3 {
                 color: var(--cor-azul) !important;
+                font-weight: 700 !important;
             }
-            /* Metric Cards */
+            /* Metric Cards (Design Moderno e Clean) */
             [data-testid="stMetric"] {
                 background-color: var(--cor-branco) !important;
-                padding: 15px !important;
-                border-radius: 8px !important;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+                padding: 1.2rem !important;
+                border-radius: 10px !important;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04) !important;
+                border: 1px solid rgba(0, 0, 0, 0.05) !important;
                 border-left: 5px solid var(--cor-laranja) !important;
             }
+            /* Garantir cor legível para os valores e labels das métricas no tema claro */
+            [data-testid="stMetricLabel"] > div {
+                color: #555555 !important;
+                font-weight: 600 !important;
+            }
+            [data-testid="stMetricValue"] > div {
+                color: var(--cor-azul) !important;
+                font-weight: 800 !important;
+            }
+            
             [data-testid="stExpander"] {
                 background-color: var(--cor-branco) !important;
+                border-radius: 8px !important;
+                border: 1px solid rgba(0,0,0,0.05) !important;
             }
         }
 
         /* Estilos baseados no tema do sistema (Dark) */
         @media (prefers-color-scheme: dark) {
-            [data-testid="stAppViewContainer"] {
+            .stApp {
                 background-color: var(--cor-preto) !important;
             }
             [data-testid="stSidebar"] {
-                background-color: #222222 !important;
+                background-color: #141414 !important;
+                border-right: 1px solid rgba(255,255,255,0.05) !important;
             }
             /* Headers */
             h1, h2, h3 {
                 color: var(--cor-laranja) !important;
+                font-weight: 700 !important;
             }
-            /* Metric Cards */
+            /* Metric Cards (Design Escuro Clean) */
             [data-testid="stMetric"] {
                 background-color: #222222 !important;
-                padding: 15px !important;
-                border-radius: 8px !important;
-                box-shadow: 0 2px 4px rgba(255,255,255,0.05) !important;
+                padding: 1.2rem !important;
+                border-radius: 10px !important;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
+                border: 1px solid rgba(255,255,255,0.05) !important;
                 border-left: 5px solid var(--cor-azul) !important;
             }
+            /* Garantir cor legível para os valores e labels das métricas no tema escuro */
+            [data-testid="stMetricLabel"] > div {
+                color: #A0A0A0 !important; 
+                font-weight: 600 !important;
+            }
+            [data-testid="stMetricValue"] > div {
+                color: var(--cor-branco) !important; 
+                font-weight: 800 !important;
+            }
+            
             [data-testid="stExpander"] {
                 background-color: #222222 !important;
+                border-radius: 8px !important;
+                border: 1px solid rgba(255,255,255,0.05) !important;
             }
         }
 
         /* Botões Globais (Comuns para ambos) */
         .stButton > button {
-            background-color: var(--cor-laranja) !important;
-            color: var(--cor-branco) !important;
-            border: none !important;
-            font-weight: bold !important;
+            background-color: transparent !important;
+            color: var(--cor-laranja) !important;
+            border: 1.5px solid var(--cor-laranja) !important;
+            font-weight: 600 !important;
             border-radius: 6px !important;
+            padding: 0.25rem 0.75rem !important;
+            transition: all 0.2s ease;
         }
         .stButton > button:hover {
-            background-color: var(--cor-azul) !important;
+            background-color: var(--cor-laranja) !important;
             color: var(--cor-branco) !important;
+            box-shadow: 0 4px 6px rgba(232, 119, 34, 0.2) !important;
         }
         
         /* Botão de Link (Autenticar com Google) */
@@ -93,13 +126,16 @@ def apply_custom_theme():
             background-color: var(--cor-laranja) !important;
             color: var(--cor-branco) !important;
             border: none !important;
-            font-weight: bold !important;
+            font-weight: 600 !important;
             text-decoration: none !important;
             border-radius: 6px !important;
+            padding: 0.5rem 1rem !important;
+            transition: all 0.2s ease;
         }
         .stLinkButton > a:hover {
             background-color: var(--cor-azul) !important;
             color: var(--cor-branco) !important;
+            box-shadow: 0 4px 8px rgba(11, 61, 94, 0.3) !important;
         }
     </style>
     """
