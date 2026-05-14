@@ -16,96 +16,61 @@ st.set_page_config(
 def apply_custom_theme():
     custom_css = """
     <style>
-        /* Variáveis de Cores Corporativas */
+        /* Variáveis de Cores Corporativas para uso em componentes específicos */
         :root {
             --cor-laranja: #E87722;
             --cor-azul: #0B3D5E;
-            --cor-preto: #1A1A1A;
-            --cor-cinza: #F5F6FA;
-            --cor-branco: #FFFFFF;
         }
 
-        /* Estilos baseados no tema do sistema (Light) */
+        /* 
+           Não sobrescrevemos o background principal (.stApp) nem a Sidebar aqui
+           para que o alternador nativo de Claro/Escuro do Streamlit funcione 100% perfeitamente.
+           O fundo do Modo Claro nativo é #FFFFFF (muito próximo de #F5F6FA) e 
+           o do Modo Escuro é #0E1117 (muito próximo de #1A1A1A).
+        */
+
         @media (prefers-color-scheme: light) {
-            .stApp {
-                background-color: var(--cor-cinza) !important;
-            }
-            [data-testid="stSidebar"] {
-                background-color: var(--cor-branco) !important;
-                border-right: 1px solid rgba(0,0,0,0.05) !important;
-            }
-            /* Headers */
-            h1, h2, h3 {
+            h1, h2, h3, h4, h5, h6 {
                 color: var(--cor-azul) !important;
                 font-weight: 700 !important;
             }
-            /* Metric Cards (Design Moderno e Clean) */
-            [data-testid="stMetric"] {
-                background-color: var(--cor-branco) !important;
-                padding: 1.2rem !important;
-                border-radius: 10px !important;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04) !important;
-                border: 1px solid rgba(0, 0, 0, 0.05) !important;
-                border-left: 5px solid var(--cor-laranja) !important;
-            }
-            /* Garantir cor legível para os valores e labels das métricas no tema claro */
-            [data-testid="stMetricLabel"] > div {
-                color: #555555 !important;
-                font-weight: 600 !important;
-            }
-            [data-testid="stMetricValue"] > div {
-                color: var(--cor-azul) !important;
-                font-weight: 800 !important;
-            }
-            
-            [data-testid="stExpander"] {
-                background-color: var(--cor-branco) !important;
-                border-radius: 8px !important;
-                border: 1px solid rgba(0,0,0,0.05) !important;
-            }
         }
-
-        /* Estilos baseados no tema do sistema (Dark) */
+        
         @media (prefers-color-scheme: dark) {
-            .stApp {
-                background-color: var(--cor-preto) !important;
-            }
-            [data-testid="stSidebar"] {
-                background-color: #141414 !important;
-                border-right: 1px solid rgba(255,255,255,0.05) !important;
-            }
-            /* Headers */
-            h1, h2, h3 {
+            h1, h2, h3, h4, h5, h6 {
                 color: var(--cor-laranja) !important;
                 font-weight: 700 !important;
             }
-            /* Metric Cards (Design Escuro Clean) */
-            [data-testid="stMetric"] {
-                background-color: #222222 !important;
-                padding: 1.2rem !important;
-                border-radius: 10px !important;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
-                border: 1px solid rgba(255,255,255,0.05) !important;
-                border-left: 5px solid var(--cor-azul) !important;
-            }
-            /* Garantir cor legível para os valores e labels das métricas no tema escuro */
-            [data-testid="stMetricLabel"] > div {
-                color: #A0A0A0 !important; 
-                font-weight: 600 !important;
-            }
-            [data-testid="stMetricValue"] > div {
-                color: var(--cor-branco) !important; 
-                font-weight: 800 !important;
-            }
-            
-            [data-testid="stExpander"] {
-                background-color: #222222 !important;
-                border-radius: 8px !important;
-                border: 1px solid rgba(255,255,255,0.05) !important;
-            }
         }
 
-        /* Botões Globais (Comuns para ambos) */
+        /* Metric Cards com design fluido que se adapta ao tema nativo */
+        [data-testid="stMetric"] {
+            background-color: var(--secondary-background-color) !important;
+            padding: 1.2rem !important;
+            border-radius: 10px !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+            border-left: 5px solid var(--cor-laranja) !important;
+            border-top: 1px solid rgba(128,128,128,0.1) !important;
+            border-right: 1px solid rgba(128,128,128,0.1) !important;
+            border-bottom: 1px solid rgba(128,128,128,0.1) !important;
+        }
+        
+        /* Garantir que o valor da métrica pegue a cor do texto nativa do Streamlit */
+        [data-testid="stMetricValue"] > div {
+            color: var(--text-color) !important;
+            font-weight: 800 !important;
+        }
+        [data-testid="stMetricLabel"] > div {
+            font-weight: 600 !important;
+        }
+
+        /* Expansores e DataFrames para combinarem com os cards */
+        [data-testid="stExpander"], [data-testid="stDataFrame"] {
+            border-radius: 8px !important;
+            border: 1px solid rgba(128,128,128,0.2) !important;
+        }
+
+        /* Botões Globais padronizados (Outline) */
         .stButton > button {
             background-color: transparent !important;
             color: var(--cor-laranja) !important;
@@ -117,14 +82,14 @@ def apply_custom_theme():
         }
         .stButton > button:hover {
             background-color: var(--cor-laranja) !important;
-            color: var(--cor-branco) !important;
-            box-shadow: 0 4px 6px rgba(232, 119, 34, 0.2) !important;
+            color: white !important;
+            border-color: var(--cor-laranja) !important;
         }
         
-        /* Botão de Link (Autenticar com Google) */
+        /* Botão Primário (Link Autenticação) */
         .stLinkButton > a {
             background-color: var(--cor-laranja) !important;
-            color: var(--cor-branco) !important;
+            color: white !important;
             border: none !important;
             font-weight: 600 !important;
             text-decoration: none !important;
@@ -134,8 +99,7 @@ def apply_custom_theme():
         }
         .stLinkButton > a:hover {
             background-color: var(--cor-azul) !important;
-            color: var(--cor-branco) !important;
-            box-shadow: 0 4px 8px rgba(11, 61, 94, 0.3) !important;
+            color: white !important;
         }
     </style>
     """
