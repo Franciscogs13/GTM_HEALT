@@ -587,6 +587,13 @@ else:
                                     file_name=f"gtm_resumo_v{version_id}.csv",
                                     mime="text/csv",
                                 )
+                                csv_inventory = df_inventory.to_csv(index=False).encode('utf-8')
+                                st.download_button(
+                                    label="Baixar Inventário (CSV)",
+                                    data=csv_inventory,
+                                    file_name=f"gtm_inventario_v{version_id}.csv",
+                                    mime="text/csv",
+                                )
                                 
                             with col_btn2:
                                 try:
