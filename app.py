@@ -108,7 +108,7 @@ def apply_custom_theme():
 
 apply_custom_theme()
 
-# --- Funções Auxiliares ---
+# algumas funções que quebram galho pra gente não repetir código
 def to_excel(df_summary, df_inventory):
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
@@ -118,9 +118,9 @@ def to_excel(df_summary, df_inventory):
     processed_data = output.getvalue()
     return processed_data
 
-# --- CONFIGURAÇÃO OAUTH WEB ---
+# setup pra fazer o login com o google funcionar certinho na web
 try:
-    # Lê a string do secrets.toml e converte para dicionário (JSON)
+    # puxando os segredos de autenticação que estão salvos no servidor
     client_config = json.loads(st.secrets["google_oauth"]["client_secrets"])
 except Exception as e:
     st.error("⚠️ Erro ao ler .streamlit/secrets.toml. Certifique-se de que o arquivo existe e contém a chave 'client_secrets'.")
@@ -138,16 +138,16 @@ def get_flow():
 
 @st.cache_resource
 def get_oauth_cache():
-    # Cache global compartilhado entre abas/sessões para manter o PKCE
+    # um hackzinho usando cache global pra gente não perder o token (PKCE) se o usuário mudar de aba
     return {}
 
-# --- CAPTURA O RETORNO DO LOGIN ---
+# hora de pegar a resposta do google depois que o usuário loga
 if 'code' in st.query_params:
     try:
         flow = get_flow()
         state = st.query_params.get('state')
         
-        # Restaura o code_verifier usando o cache global para contornar a perda de sessão em nova aba
+        # puxa o verificador de volta pra gente não tomar erro de sessão perdida
         cache = get_oauth_cache()
         if state and state in cache:
             flow.code_verifier = cache.pop(state)
@@ -155,7 +155,7 @@ if 'code' in st.query_params:
         flow.fetch_token(code=st.query_params['code'])
         st.session_state.credentials = flow.credentials
         
-        # Limpa os parâmetros da URL
+        # dá aquela limpada na url pra não ficar feia cheia de token
         st.query_params.clear()
         if 'auth_url' in st.session_state:
             del st.session_state['auth_url']
@@ -168,7 +168,7 @@ if 'code' in st.query_params:
 st.sidebar.title("Configurações OAuth")
 st.sidebar.markdown("Autentique-se com sua conta Google para acessar o GTM.")
 
-# Se o usuário NÃO está logado
+# se a galera ainda não fez login, a gente mostra a tela inicial
 if 'credentials' not in st.session_state:
     st.info("👈 Siga as instruções na barra lateral para começar.")
     st.markdown("""
@@ -181,20 +181,20 @@ if 'credentials' not in st.session_state:
     3. Uma janela do navegador se abrirá para você conceder acesso.
     """)
     
-    # Gera o link seguro do Google garantindo persistência do state (PKCE)
+    # cria o link  de login do google já tratando a segurança do state
     if 'auth_url' not in st.session_state:
         flow = get_flow()
         auth_url, state = flow.authorization_url(prompt='consent', access_type='offline')
         st.session_state['auth_url'] = auth_url
         
         if hasattr(flow, 'code_verifier'):
-            # Salva no cache global usando o state como chave
+            # guarda o verificador no nosso cache pra garantir
             get_oauth_cache()[state] = flow.code_verifier
             
     st.sidebar.link_button("🔐 Autenticar com Google", st.session_state['auth_url'])
 
 
-# Se o usuário ESTÁ logado
+# se deu tudo certo no login, a gente entra no sistema de verdade
 else:
     st.sidebar.success("✅ Conectado com sucesso!")
     if st.sidebar.button("🚪 Sair (Logout)"):
@@ -203,10 +203,10 @@ else:
             del st.session_state['accounts']
         st.rerun()
         
-    # Instancia GTMService com as credenciais salvas
+    # prepara a nossa api do gtm passando a chave de acesso do cara
     gtm = GTMService(credentials=st.session_state.credentials)
     
-    # Recupera as contas da sessão ou busca novamente se não existirem
+    # pega as contas do cara (se a gente já tiver em memória, nem precisa bater na api de novo)
     if 'accounts' not in st.session_state:
         try:
             st.session_state.accounts = gtm.get_accounts()
@@ -227,7 +227,7 @@ else:
             account_id = account_options[selected_account_name]
             account_path = f"accounts/{account_id}"
             
-            # Busca Contêineres com Cache
+            # traz os containers tentando não gastar cota da api à toa (usando cache)
             if 'containers_cache' not in st.session_state:
                 st.session_state.containers_cache = {}
                 
@@ -244,7 +244,7 @@ else:
                 container_id = container_options[selected_container_name]
                 container_path = f"{account_path}/containers/{container_id}"
                 
-                # Histórico de Versões buscado para Selectbox e Comparativo
+                # carrega o histórico pra gente jogar no select e também usar depois na auditoria
                 if 'versions_history_cache' not in st.session_state:
                     st.session_state.versions_history_cache = {}
                     
@@ -278,7 +278,7 @@ else:
                 if st.session_state.get('auditing_container') == container_id:
                     with st.spinner("Buscando dados da versão selecionada..."):
                         try:
-                            # Busca a versão selecionada pelo usuário
+                            # tenta pegar a versão que o cara clicou
                             if selected_version_path:
                                 live_version = gtm.service.accounts().containers().versions().get(path=selected_version_path).execute()
                             else:
@@ -299,7 +299,7 @@ else:
                             script_size_kb = gtm.calculate_script_size(live_version)
                             complexity_ms = gtm.calculate_complexity(num_tags, num_variables)
                             
-                            # Identificar tags sem acionador (órfãs)
+                            # varre as tags procurando aquelas esquecidas sem acionador (as órfãs)
                             orphan_tags_list = [{'Nome da Tag': tag.get('name', 'N/A'), 'Tipo': tag.get('type', 'N/A')} for tag in tags if not tag.get('firingTriggerId') or len(tag.get('firingTriggerId')) == 0]
                             orphan_tags = len(orphan_tags_list)
                             
@@ -420,7 +420,7 @@ else:
                                                 if eid not in prev_dict:
                                                     added.append({'Elemento': e.get('name', eid)})
                                                 else:
-                                                    # Ignora chaves internas que mudam entre versões mas não representam alteração funcional
+                                                    # tem umas chaves que o gtm muda o tempo todo mas que não afetam a vida de ninguém, então a gente ignora
                                                     ignore_keys = ['fingerprint', 'path', 'workspaceId', 'containerVersionId']
                                                     e_clean = {k: v for k, v in e.items() if k not in ignore_keys}
                                                     prev_e_clean = {k: v for k, v in prev_dict[eid].items() if k not in ignore_keys}
@@ -434,7 +434,7 @@ else:
                                                             val_anterior = prev_e_clean.get(k)
                                                             if val_atual != val_anterior:
                                                                 if k == 'parameter':
-                                                                    # Comparação inteligente dos parâmetros (que são listas de dicionários)
+                                                                    # os parâmetros vêm meio esquisitos como lista, então a gente transforma em dicionário pra comparar direitinho
                                                                     params_atuais = {p.get('key'): p.get('value') for p in (val_atual or []) if 'key' in p}
                                                                     params_anteriores = {p.get('key'): p.get('value') for p in (val_anterior or []) if 'key' in p}
                                                                     all_p_keys = set(params_atuais.keys()).union(params_anteriores.keys())
@@ -551,6 +551,29 @@ else:
                             inventory = gtm.extract_inventory(live_version)
                             df_inventory = pd.DataFrame(inventory)
                             st.dataframe(df_inventory, use_container_width=True, hide_index=True)
+                            
+                            st.markdown("#### Distribuição de Tipos")
+                            col_tipo1, col_tipo2 = st.columns(2)
+                            
+                            with col_tipo1:
+                                df_tags = df_inventory[df_inventory['Element Type'] == 'Tag']
+                                if not df_tags.empty:
+                                    tags_dist = df_tags['Tipo'].value_counts().reset_index()
+                                    tags_dist.columns = ['Tipo', 'Quantidade']
+                                    fig_tags = px.pie(tags_dist, values='Quantidade', names='Tipo', hole=0.4, title='Tipos de Tags', color_discrete_sequence=px.colors.sequential.Oranges)
+                                    st.plotly_chart(fig_tags, use_container_width=True)
+                                else:
+                                    st.info("Nenhuma Tag encontrada.")
+                                    
+                            with col_tipo2:
+                                df_vars = df_inventory[df_inventory['Element Type'] == 'Variable']
+                                if not df_vars.empty:
+                                    vars_dist = df_vars['Tipo'].value_counts().reset_index()
+                                    vars_dist.columns = ['Tipo', 'Quantidade']
+                                    fig_vars = px.pie(vars_dist, values='Quantidade', names='Tipo', hole=0.4, title='Tipos de Variáveis', color_discrete_sequence=px.colors.sequential.Blues)
+                                    st.plotly_chart(fig_vars, use_container_width=True)
+                                else:
+                                    st.info("Nenhuma Variável encontrada.")
                             
                             # Botões de Exportação
                             st.markdown("#### Exportar Dados")
