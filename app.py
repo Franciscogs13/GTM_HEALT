@@ -341,8 +341,9 @@ else:
                                     'Elemento': ['Tags', 'Triggers', 'Variáveis'],
                                     'Quantidade': [num_tags, num_triggers, num_variables]
                                 })
+                                modern_palette = ['#2979FF', '#00E5FF', '#7C4DFF', '#FF4081', '#FF9100']
                                 fig_pie = px.pie(pie_data, values='Quantidade', names='Elemento', hole=0.4,
-                                                 color_discrete_sequence=['#E87722', '#0B3D5E', '#A0A0A0'])
+                                                 color_discrete_sequence=modern_palette)
                                 st.plotly_chart(fig_pie, use_container_width=True)
                                 
                             with col_chart2:
@@ -377,7 +378,7 @@ else:
                                         df_hist = df_hist.iloc[::-1]
                                         
                                         fig_bar = px.bar(df_hist, x='Versão', y='Tamanho (KB)', text='Tamanho (KB)',
-                                                         color_discrete_sequence=['#0B3D5E'])
+                                                         color_discrete_sequence=['#2979FF'])
                                         fig_bar.update_traces(texttemplate='%{text:.1f}', textposition='outside')
                                         st.plotly_chart(fig_bar, use_container_width=True)
                                     else:
@@ -560,7 +561,7 @@ else:
                                 if not df_tags.empty:
                                     tags_dist = df_tags['Tipo'].value_counts().reset_index()
                                     tags_dist.columns = ['Tipo', 'Quantidade']
-                                    fig_tags = px.pie(tags_dist, values='Quantidade', names='Tipo', hole=0.4, title='Tipos de Tags', color_discrete_sequence=px.colors.sequential.Oranges)
+                                    fig_tags = px.pie(tags_dist, values='Quantidade', names='Tipo', hole=0.4, title='Tipos de Tags', color_discrete_sequence=['#2979FF', '#00E5FF', '#7C4DFF', '#FF4081', '#FF9100'])
                                     st.plotly_chart(fig_tags, use_container_width=True)
                                 else:
                                     st.info("Nenhuma Tag encontrada.")
@@ -570,7 +571,7 @@ else:
                                 if not df_vars.empty:
                                     vars_dist = df_vars['Tipo'].value_counts().reset_index()
                                     vars_dist.columns = ['Tipo', 'Quantidade']
-                                    fig_vars = px.pie(vars_dist, values='Quantidade', names='Tipo', hole=0.4, title='Tipos de Variáveis', color_discrete_sequence=px.colors.sequential.Blues)
+                                    fig_vars = px.pie(vars_dist, values='Quantidade', names='Tipo', hole=0.4, title='Tipos de Variáveis', color_discrete_sequence=['#2979FF', '#00E5FF', '#7C4DFF', '#FF4081', '#FF9100'])
                                     st.plotly_chart(fig_vars, use_container_width=True)
                                 else:
                                     st.info("Nenhuma Variável encontrada.")
