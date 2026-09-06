@@ -304,7 +304,7 @@ else:
                             orphan_tags = len(orphan_tags_list)
                             
                             # --- Renderização do Dashboard Principal ---
-                            st.title(f"Dashboard de Saúde: {selected_container_name}")
+                            st.title("GTM Health Dashboard")
                             st.markdown(f"**Versão:** {version_name} (ID: {version_id})")
                             
                             st.markdown("### KPIs Principais")
