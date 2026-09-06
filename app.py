@@ -551,6 +551,33 @@ else:
                             st.markdown("#### Inventário de Elementos")
                             inventory = gtm.extract_inventory(live_version)
                             df_inventory = pd.DataFrame(inventory)
+                            
+                            # dicionário de mapeamento para tipos do GTM
+                            gtm_type_mapping = {
+                                "googtag": "Tag do Google",
+                                "c": "Permanente",
+                                "html": "HTML Personalizado",
+                                "jsm": "JavaScript Personalizado",
+                                "v": "Variável de Camada de Dados",
+                                "smm": "Tabela de Consulta",
+                                "gaawe": "GA4: Evento",
+                                "gaawa": "GA4: Configuração",
+                                "ua": "Universal Analytics",
+                                "remm": "Tabela de Expressão Regular",
+                                "gas": "Google Ads: Conversões",
+                                "sp": "Google Ads: Remarketing",
+                                "awct": "Google Ads: Conversões",
+                                "pageview": "Exibição de Página",
+                                "customEvent": "Evento Personalizado",
+                                "click": "Clique",
+                                "linkClick": "Clique em Link"
+                            }
+                            
+                            # aplica o mapeamento com regra de fallback para manter o valor original em UPPERCASE caso não exista no dict
+                            df_inventory['Tipo'] = df_inventory['Tipo'].apply(
+                                lambda x: gtm_type_mapping.get(x, str(x).upper() if pd.notnull(x) else 'N/A')
+                            )
+                            
                             st.dataframe(df_inventory, use_container_width=True, hide_index=True)
                             
                             st.markdown("#### Distribuição de Tipos")

@@ -55,25 +55,6 @@ class GTMService:
         triggers = version_data.get('trigger', [])
         variables = version_data.get('variable', [])
         
-        # dicionário pra traduzir os tipos esquisitos do gtm pra nomes de verdade
-        type_mapping = {
-            'html': 'HTML Personalizado',
-            'jsm': 'JavaScript Personalizado',
-            'v': 'Variável de Camada de Dados (Data Layer)',
-            'gaawa': 'Google Analytics: Configuração GA4',
-            'gaawe': 'Google Analytics: Evento GA4',
-            'ua': 'Google Analytics: Universal Analytics',
-            'smm': 'Tabela de Consulta (Lookup Table)',
-            'remm': 'Tabela de RegEx (Regex Table)',
-            'gas': 'Google Ads: Conversões',
-            'sp': 'Google Ads: Remarketing',
-            'awct': 'Google Ads: Conversões',
-            'pageview': 'Exibição de Página',
-            'customEvent': 'Evento Personalizado',
-            'click': 'Clique',
-            'linkClick': 'Clique em Link'
-        }
-        
         # mapeia os triggers pelo id pra ficar mais fácil de achar o nome depois
         triggers_map = {t['triggerId']: t['name'] for t in triggers}
         
@@ -82,7 +63,6 @@ class GTMService:
         for tag in tags:
             tag_name = tag.get('name', 'N/A')
             tag_type = tag.get('type', 'N/A')
-            mapped_type = type_mapping.get(tag_type, tag_type)
             
             # verifica se a tag tá sem nenhum acionador configurado (aquelas tags perdidas no container)
             firing_triggers_ids = tag.get('firingTriggerId', [])
@@ -91,31 +71,29 @@ class GTMService:
             inventory.append({
                 'Element Type': 'Tag',
                 'Name': tag_name,
-                'Tipo': mapped_type,
+                'Tipo': tag_type,
                 'Associated Triggers': ', '.join(firing_triggers_names) if firing_triggers_names else 'Nenhum (Órfã)',
                 'Status': 'Pausada' if tag.get('paused') else 'Ativa'
             })
             
         for trigger in triggers:
             trigger_type = trigger.get('type', 'N/A')
-            mapped_type = type_mapping.get(trigger_type, trigger_type)
             
             inventory.append({
                 'Element Type': 'Trigger',
                 'Name': trigger.get('name', 'N/A'),
-                'Tipo': mapped_type,
+                'Tipo': trigger_type,
                 'Associated Triggers': 'N/A',
                 'Status': 'Ativa'
             })
             
         for variable in variables:
             variable_type = variable.get('type', 'N/A')
-            mapped_type = type_mapping.get(variable_type, variable_type)
             
             inventory.append({
                 'Element Type': 'Variable',
                 'Name': variable.get('name', 'N/A'),
-                'Tipo': mapped_type,
+                'Tipo': variable_type,
                 'Associated Triggers': 'N/A',
                 'Status': 'Ativa'
             })
